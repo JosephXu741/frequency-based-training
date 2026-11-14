@@ -11,7 +11,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenHistory })
   const { user, isConfigured, signInWithGoogle, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
+    <header className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
       <div className="max-w-xl mx-auto flex items-center justify-between">
         {/* Logo & Brand */}
         <div className="flex items-center gap-2.5">

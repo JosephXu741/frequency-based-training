@@ -4,6 +4,7 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
+  writeBatch,
   query,
   orderBy,
   limit,
@@ -11,6 +12,13 @@ import {
 import { db, isFirebaseConfigured } from './firebase';
 import type { MuscleGroup, Workout } from '../types';
 import { DEFAULT_MUSCLE_GROUPS } from '../utils/frequency';
+
+// Firestore write promises settle only on server ack, so offline they never
+// resolve. The local cache applies writes immediately and syncs later, so
+// callers must not await them.
+function logWriteError(what: string) {
+  return (err: unknown) => console.error(`Error ${what} Firestore:`, err);
+}
 
 const LOCAL_STORAGE_KEY_GROUPS = 'fbt_muscle_groups';
 const LOCAL_STORAGE_KEY_WORKOUTS = 'fbt_workouts';
@@ -43,9 +51,11 @@ export async function fetchMuscleGroups(userId?: string | null): Promise<MuscleG
       } else {
         // Seed new user with default muscle groups
         const initial = getInitialLocalGroups();
+        const batch = writeBatch(db);
         for (const item of initial) {
-          await setDoc(doc(colRef, item.id), { ...item, userId });
+          batch.set(doc(colRef, item.id), { ...item, userId });
         }
+        batch.commit().catch(logWriteError('seeding muscle groups in'));
         return initial.map((g) => ({ ...g, userId }));
       }
     } catch (err) {
@@ -73,14 +83,10 @@ export async function saveMuscleGroup(
 
   // Sync to Firestore if authenticated
   if (userId && isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, 'users', userId, 'muscle_groups', group.id), {
-        ...group,
-        userId,
-      });
-    } catch (err) {
-      console.error('Error saving muscle group to Firestore:', err);
-    }
+    setDoc(doc(db, 'users', userId, 'muscle_groups', group.id), {
+      ...group,
+      userId,
+    }).catch(logWriteError('saving muscle group to'));
   }
 }
 
@@ -93,11 +99,9 @@ export async function removeMuscleGroup(
   localStorage.setItem(LOCAL_STORAGE_KEY_GROUPS, JSON.stringify(updated));
 
   if (userId && isFirebaseConfigured && db) {
-    try {
-      await deleteDoc(doc(db, 'users', userId, 'muscle_groups', groupId));
-    } catch (err) {
-      console.error('Error deleting muscle group from Firestore:', err);
-    }
+    deleteDoc(doc(db, 'users', userId, 'muscle_groups', groupId)).catch(
+      logWriteError('deleting muscle group from')
+    );
   }
 }
 
@@ -147,22 +151,20 @@ export async function recordWorkout(
 
   // Sync to Firestore if authenticated
   if (userId && isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, 'users', userId, 'workouts', workout.id), {
-        ...workout,
-        userId,
-      });
-      for (const gid of workout.muscleGroupIds) {
-        const g = updatedGroups.find((x) => x.id === gid);
-        if (g) {
-          await setDoc(doc(db, 'users', userId, 'muscle_groups', gid), {
-            ...g,
-            userId,
-          });
-        }
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'users', userId, 'workouts', workout.id), {
+      ...workout,
+      userId,
+    });
+    for (const gid of workout.muscleGroupIds) {
+      const g = updatedGroups.find((x) => x.id === gid);
+      if (g) {
+        batch.set(doc(db, 'users', userId, 'muscle_groups', gid), {
+          ...g,
+          userId,
+        });
       }
-    } catch (err) {
-      console.error('Error syncing workout to Firestore:', err);
     }
+    batch.commit().catch(logWriteError('syncing workout to'));
   }
 }

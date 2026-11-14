@@ -83,3 +83,22 @@ To enable cross-device cloud sync and Google login:
 2. Go to [vercel.com](https://vercel.com) and import `frequency-based-training`.
 3. Add any environment variables from `.env.local`.
 4. Deploy! Any future commits to `main` will automatically build and deploy.
+
+---
+
+## Install on iPhone
+
+1. Deploy the app to an HTTPS host such as Vercel.
+2. Open the site in Safari on the iPhone.
+3. Tap Share, then Add to Home Screen.
+
+The app then opens full screen and works offline. Workouts logged offline sync when you are back online.
+
+### Google sign-in from the home screen app
+
+The installed app signs in with a redirect, which needs the Firebase auth handler on your own domain.
+
+1. In `vercel.json`, replace `YOUR_FIREBASE_PROJECT_ID` with your Firebase project ID.
+2. Set `VITE_FIREBASE_AUTH_DOMAIN` to your deployed domain (for example `your-app.vercel.app`) in the Vercel environment variables.
+3. Add that domain to Firebase Console, Authentication, Settings, Authorized domains.
+4. In Google Cloud Console, add `https://<your-domain>/__/auth/handler` to the OAuth client's authorized redirect URIs.

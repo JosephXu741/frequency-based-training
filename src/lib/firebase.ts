@@ -1,6 +1,12 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { connectAuthEmulator, getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
+import {
+  connectFirestoreEmulator,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -24,7 +30,13 @@ let db: Firestore | undefined;
 if (isFirebaseConfigured) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
-  db = getFirestore(app);
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  });
+  if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  }
 }
 
 export const googleProvider = new GoogleAuthProvider();
