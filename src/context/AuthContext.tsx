@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   signInWithPopup,
+  signInWithRedirect,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -31,6 +32,18 @@ declare global {
       };
     };
   }
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
+// iOS standalone PWAs can't complete popup sign-in, so they use redirect.
+function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as NavigatorWithStandalone).standalone === true
+  );
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -87,7 +100,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (isStandalone()) {
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (error) {
       console.error('Sign in with Google error:', error);
     }
