@@ -25,3 +25,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Verification runs (verify-fbt skill)
+.verify/
+.claude/skills/*/node_modules
