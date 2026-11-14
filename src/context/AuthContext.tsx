@@ -4,35 +4,11 @@ import {
   signInWithRedirect,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithCredential,
   type User,
 } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../lib/firebase';
 import { AuthContext } from './useAuth';
 
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: {
-            client_id: string;
-            callback: (response: { credential: string }) => void;
-            auto_select?: boolean;
-            cancel_on_tap_outside?: boolean;
-          }) => void;
-          prompt: () => void;
-          renderButton: (
-            parent: HTMLElement,
-            options: { theme?: string; size?: string; width?: number }
-          ) => void;
-        };
-      };
-    };
-  }
-}
 
 interface NavigatorWithStandalone extends Navigator {
   standalone?: boolean;
@@ -63,34 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => unsubscribe();
   }, []);
-
-  // Google One Tap initialization
-  useEffect(() => {
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!googleClientId || !window.google || user || !auth) return;
-
-    try {
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: async (response) => {
-          try {
-            const credential = GoogleAuthProvider.credential(response.credential);
-            if (auth) {
-              await signInWithCredential(auth, credential);
-            }
-          } catch (err) {
-            console.error('Google One Tap sign-in error:', err);
-          }
-        },
-        auto_select: true,
-        cancel_on_tap_outside: true,
-      });
-
-      window.google.accounts.id.prompt();
-    } catch (e) {
-      console.warn('Google One Tap init failed:', e);
-    }
-  }, [user]);
 
   const signInWithGoogle = async () => {
     if (!isFirebaseConfigured || !auth) {

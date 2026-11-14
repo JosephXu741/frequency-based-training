@@ -1,0 +1,10 @@
+{
+  "name": "verify-fbt",
+  "private": true,
+  "type": "module",
+  "description": "Verification tooling for the FBT app. Kept out of the app's package.json.",
+  "dependencies": {
+    "firebase-tools": "14.11.0",
+    "playwright": "1.55.0"
+  }
+}

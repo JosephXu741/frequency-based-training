@@ -17,7 +17,7 @@ Instead of arbitrary "Monday is Chest Day", you define how often each muscle gro
 - **Workout History**: Timestamped log of past training sessions with muscle tags and notes.
 - **Dual Storage Mode**:
   - **Instant Local Mode**: Works immediately offline via browser storage with zero setup.
-  - **Firebase & Google One Tap Sync**: Log in with Google to synchronize your workouts to Cloud Firestore across all devices.
+  - **Firebase & Google Sign-In Sync**: Log in with Google to synchronize your workouts to Cloud Firestore across all devices.
 
 ---
 
@@ -28,7 +28,7 @@ Instead of arbitrary "Monday is Chest Day", you define how often each muscle gro
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com) (mobile-first, dark gym aesthetic)
 - **Icons**: [Lucide React](https://lucide.dev)
 - **Backend / Database**: [Cloud Firestore](https://firebase.google.com/docs/firestore) + [Firebase Auth](https://firebase.google.com/docs/auth)
-- **Authentication**: Google One Tap + Google Sign-In (with LocalStorage fallback)
+- **Authentication**: Google Sign-In through Firebase (with LocalStorage fallback)
 
 ---
 
@@ -59,7 +59,7 @@ npm run build
 
 ---
 
-## 🔑 Firebase & Google One Tap Setup (Optional)
+## 🔑 Firebase Setup (Optional)
 
 To enable cross-device cloud sync and Google login:
 
@@ -70,7 +70,7 @@ To enable cross-device cloud sync and Google login:
    ```bash
    cp .env.example .env.local
    ```
-5. Fill in your Firebase API keys and Google Client ID.
+5. Fill in the API key, auth domain and project ID from Project Settings, Your apps, Web app.
 
 ---
 
